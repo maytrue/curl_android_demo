@@ -4,7 +4,11 @@ CURL Download test with android
 
 ## libcurl中curl_easy_perform卡死问题
 
+The following two article are about this problem
+
 https://www.freehacker.cn/tools/libcurl-curl_easy_perform-blocking-problem/
+
+https://www.cnblogs.com/bigben0123/p/3192978.html
 
 But I cannot produce it 
 
