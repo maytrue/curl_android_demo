@@ -13,6 +13,10 @@ Turn off network, and click button to download file
 curl_easy_perform:6
 ```
 
+```
+CURLE_COULDNT_RESOLVE_HOST,    /* 6 */
+```
+
 Click button to download file, then turn off network 
 
 ```
@@ -23,6 +27,9 @@ Click button to download file, then turn off network
 2019-07-31 15:39:46.560 21701-23585/net.maytrue.openssl D/curl: curl_easy_perform:56
 ```
 
+```
+CURLE_RECV_ERROR,              /* 56 - failure in receiving network data */
+```
 curl exist download loop successfully 
 
 
