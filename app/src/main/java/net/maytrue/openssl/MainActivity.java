@@ -10,25 +10,47 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private Thread mThread;
     private Button mButton;
     private HandlerThread mHandlerThread;
     private Handler mHandler;
+    private CurlMulti mCurlMulti;
+    private List<String> mList = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+//        mList.add("http://img.momocdn.com/feedvideo/A4/79/A4796DEB-34B3-B0C8-5F78-7061A711E5EE20170730.mp4");
+//        mList.add("http://img.momocdn.com/feedvideo/D4/72/D472713F-B023-91DC-31CB-780C86896CE120171022.mp4");
+//        mList.add("https://img.momocdn.com/feedvideo/D4/72/D472713F-B023-91DC-31CB-780C86896CE120171022.mp4");
+        mList.add("http://img.momocdn.com/homepagevideo/B9/20/B920C864-FE74-4F42-ADD6-4EC671E981D820190219.mp4");
+
+        mCurlMulti = new CurlMulti();
         mHandlerThread = new HandlerThread("DownloadThread");
         mHandlerThread.start();
 
         mHandler = new Handler(mHandlerThread.getLooper(), new Handler.Callback() {
             @Override
             public boolean handleMessage(Message message) {
-                testHttpsRequest();
+
+                switch (message.what) {
+                    case 0:
+                        mCurlMulti.testHttpsRequest();
+                        break;
+
+                    case 1:
+                        for (String url : mList) {
+                           mCurlMulti.addTask(url, null, 0, -1);
+                        }
+                        break;
+                }
                 return false;
             }
         });
@@ -56,21 +78,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button button = (Button) findViewById(R.id.multi_btn);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                mCurlMulti.createCurlMulti();
+                mCurlMulti.startLoop();
+
+                mHandler.sendEmptyMessage(1);
+            }
+        });
+
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
-
-    public native void testHttpsRequest();
-
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("mmcrypto");
-        System.loadLibrary("mmssl");
-        System.loadLibrary("curl");
-        System.loadLibrary("native-lib");
-    }
 }

@@ -5,9 +5,11 @@
 #include <curl/curl.h>
 #include <android/log.h>
 
+#include "CurlMulti.hpp"
+
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_net_maytrue_openssl_MainActivity_stringFromJNI(
+Java_net_maytrue_openssl_CurlMulti_stringFromJNI(
         JNIEnv* env,
         jobject /* this */) {
     std::string hello = "Hello from C++";
@@ -36,9 +38,9 @@ static int progress_callback(void *clientp, double dltotal, double dlnow, double
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_net_maytrue_openssl_MainActivity_testHttpsRequest(
+Java_net_maytrue_openssl_CurlMulti_testHttpsRequest(
         JNIEnv* env,
-        jobject /* this */) {
+        jobject thiz) {
 
     CURL *curl;
     CURLcode res;
@@ -90,3 +92,75 @@ Java_net_maytrue_openssl_MainActivity_testHttpsRequest(
     }
     curl_global_cleanup();
 }
+
+extern "C" JNIEXPORT jlong JNICALL
+Java_net_maytrue_openssl_CurlMulti_nativeCreateCurlMulti(
+        JNIEnv* env,
+        jobject thiz) {
+
+    CurlMulti *instance = new CurlMulti();
+    return (jlong)instance;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_net_maytrue_openssl_CurlMulti_nativeStartLoop(
+        JNIEnv* env,
+        jobject thiz,
+        jlong instance) {
+    CurlMulti *multi = (CurlMulti *)instance;
+    multi->startLoop();
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_net_maytrue_openssl_CurlMulti_nativeAddTask(
+        JNIEnv* env,
+        jobject thiz,
+        jlong instance,
+        jstring url,
+        jstring header,
+        jlong start,
+        jlong end) {
+    CurlMulti *multi = (CurlMulti *)instance;
+
+    const char *urlCString = nullptr;
+    if (url) {
+        urlCString = env->GetStringUTFChars(url, NULL);
+    }
+
+    const char *headerCString = nullptr;
+    if (header) {
+        headerCString = env->GetStringUTFChars(header, NULL);
+    }
+
+    std::string urlString;
+    if (urlCString) {
+        urlString = std::string(urlCString);
+    }
+
+    std::string headerString;
+    if (headerCString) {
+        headerString = std::string(headerCString);
+    }
+
+    multi->addTask(urlString, headerString, start, end);
+
+    if (url && urlCString) {
+        env->ReleaseStringUTFChars(url, urlCString);
+    }
+
+    if (header && headerCString) {
+        env->ReleaseStringUTFChars(header, headerCString);
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_net_maytrue_openssl_CurlMulti_nativeDestroyCurlMulti(
+        JNIEnv* env,
+        jobject thiz,
+        jlong instance) {
+    CurlMulti *multi = (CurlMulti *)instance;
+    multi->stopLoop();
+    delete multi;
+    multi = nullptr;
+}
+
